@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Analysis Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2B5B84;
+            --secondary-color: #2B5B84;
+            --accent-color: #F76707;
+            --background-color: #F8F9FA;
+            --text-color: #333;
+            --card-bg: white;
+            --border-color: #eee;
+            --hover-bg: #f8f9fa;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #4A90E2;
+            --secondary-color: #6BA8F2;
+            --accent-color: #FF8C42;
+            --background-color: #1A1A1A;
+            --text-color: #E0E0E0;
+            --card-bg: #2D2D2D;
+            --border-color: #404040;
+            --hover-bg: #333333;
+        }
+
+        body {
+            background-color: var(--background-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .navbar {
+            background-color: var(--card-bg);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand img {
+            height: 50px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 25px;
+            transition: background-color 0.3s ease;
+        }
+
+        .profile-section:hover {
+            background-color: #f8f9fa;
+        }
+
+        .profile-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .profile-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .sidebar-menu {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background-color: white;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            transition: left 0.3s ease;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .sidebar-menu.active {
+            left: 0;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 999;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
+
+        .menu-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--primary-color);
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            color: var(--primary-color);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            font-weight: 500;
+        }
+
+        .menu-item:hover {
+            background-color: #f8f9fa;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .menu-item i {
+            width: 20px;
+        }
+
+        .main-container {
+            margin-top: 30px;
+            padding-bottom: 50px;
+        }
+
+        .form-card, .requests-card {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+        }
+
+        .form-label {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .form-control, .form-select {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+            color: var(--text-color);
+            border: 2px solid #e9ecef;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .request-item {
+            display: grid;
+            grid-template-columns: 30px 1fr 80px 90px auto;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85rem;
+            transition: background-color 0.2s ease;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-color: var(--border-color);
+        }
+
+        .request-item:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .request-item:last-child {
+            border-bottom: none;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-view, .btn-download {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-view {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-view:hover {
+            background-color: #357abd;
+        }
+
+        .btn-download {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-download:hover {
+            background-color: #218838;
+        }
+
+        .request-results {
+            grid-column: 1 / -1;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .request-results.show {
+            display: block;
+        }
+
+        .results-content {
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .request-number {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .request-operation {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .request-time {
+            color: #888;
+            font-size: 0.8rem;
+            text-align: right;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            white-space: nowrap;
+            min-width: 80px;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .requests-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .requests-count {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .page-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-widget {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            height: 100%;
+            border: 1px solid #eee;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .stat-icon i {
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .stat-content {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .stat-title {
+            color: #666;
+            font-size: 0.8rem;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0;
+            line-height: 1;
+        }
+
+        .bg-total {
+            background-color: var(--primary-color);
+        }
+
+        .text-total {
+            color: var(--primary-color);
+        }
+
+        .bg-pending {
+            background-color: #ffc107;
+        }
+
+        .text-pending {
+            color: #856404;
+        }
+
+        .bg-completed {
+            background-color: #28a745;
+        }
+
+        .text-completed {
+            color: #155724;
+        }
+
+        .bg-error {
+            background-color: #dc3545;
+        }
+
+        .text-error {
+            color: #721c24;
+        }
+
+        .requests-section {
+            margin-top: 20px;
+        }
+
+        .section-divider {
+            height: 1px;
+            background-color: #eee;
+            margin: 20px 0;
+        }
+
+        .auth-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .auth-title {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+        }
+
+        .auth-form {
+            margin-bottom: 20px;
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .auth-switch a {
+            color: var(--primary-color);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .auth-switch a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: #dc3545;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .success-message {
+            color: #28a745;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .user-actions {
+            margin-left: auto;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+        }
+
+        .logout-btn:hover {
+            text-decoration: underline;
+        }
+
+        .requests-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .requests-table th {
+            background-color: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--primary-color);
+            border-bottom: 2px solid #eee;
+        }
+
+        .requests-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+        .requests-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .ref-id {
+            font-family: monospace;
+            color: #666;
+        }
+
+        .operation-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .operation-translate {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .operation-ost {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .operation-audit {
+            background-color: #fff3e0;
+            color: #f57c00;
+        }
+
+        .split-indicator {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #f8f9fa;
+        }
+
+        .split-yes {
+            color: #28a745;
+        }
+
+        .split-no {
+            color: #dc3545;
+        }
+
+        .time-info {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            min-width: 80px;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-view, .btn-download {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-view {
+            background-color: var(--secondary-color);
+            color: rgb(231, 233, 234);
+        }
+
+        .btn-download {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-toggle i {
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Add theme toggle button -->
+    <button class="theme-toggle" id="themeToggle">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <!-- Auth Container -->
+    <div id="authContainer" class="auth-container" style="display: none;">
+        <h2 class="auth-title">Sign In</h2>
+        <form id="authForm" class="auth-form">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" required>
+            </div>
+            <div id="emailField" class="mb-3" style="display: none;">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email">
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Sign In</button>
+        </form>
+        <div class="auth-switch">
+            <a id="switchAuth">Create Account</a>
+        </div>
+        <div id="authMessage" class="error-message"></div>
+    </div>
+
+    <!-- Main Content (hidden by default) -->
+    <div id="mainContent" style="display: none;">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <div class="container">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-link text-primary me-3" id="menuToggle">
+                        <i class="fas fa-bars fa-lg" style="color: var(--primary-color);"></i>
+                    </button>
+                    <a class="navbar-brand" href="#">
+                        <img src="assets/Beyond AI Gen Best Final (1).png" alt="Beyond AI Gen Logo">
+                    </a>
+                </div>
+                <div class="profile-section" id="profileSection">
+                    <span class="profile-name d-none d-md-block">John Doe</span>
+                    <div class="profile-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Sidebar Menu -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <div class="sidebar-menu" id="sidebarMenu">
+            <button class="menu-close" id="menuClose">
+                <i class="fas fa-times"></i>
+            </button>
+            <h5 class="mb-4">Menu</h5>
+            <a href="/dashboard" class="menu-item">
+                <i class="fas fa-home"></i>
+                Dashboard
+            </a>
+            <a href="/" class="menu-item">
+                <i class="fas fa-plus-circle"></i>
+                New Request
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-history"></i>
+                History
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-cog"></i>
+                Settings
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-question-circle"></i>
+                Help
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </a>
+        </div>
+
+        <div class="container main-container">
+            <div class="row">
+                <!-- Form Column -->
+                <div class="col-md-8">
+                    <div class="form-card">
+                        <h2 class="page-title">Submit Request</h2>
+                        <form id="analysisForm">
+                            <div class="mb-4">
+                                <label for="videoUrl" class="form-label">
+                                    <i class="fas fa-link me-2"></i>Video URL*
+                                </label>
+                                <input type="url" class="form-control" id="videoUrl" required placeholder="Enter video URL">
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="operation" class="form-label">
+                                    <i class="fas fa-tasks me-2"></i>Operation*
+                                </label>
+                                <select class="form-select" id="operation" name="operation" required>
+                                    <option value="">Select an operation</option>
+                                    <option value="translate">Translate</option>
+                                    <option value="onlyOst">Only OST</option>
+                                    <option value="audit">Audit</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="splitOption">
+                                    <label class="form-check-label" for="splitOption">
+                                        <i class="fas fa-cut me-2"></i>Split Video
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div id="timeControls" style="display: none;">
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <label for="startTime" class="form-label">
+                                            <i class="fas fa-hourglass-start me-2"></i>Start Time (HH:mm:ss)
+                                        </label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="startTime" 
+                                               pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$"
+                                               placeholder="00:00:00"
+                                               title="Enter time in format HH:mm:ss">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="endTime" class="form-label">
+                                            <i class="fas fa-hourglass-end me-2"></i>End Time (HH:mm:ss)
+                                        </label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="endTime" 
+                                               pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$"
+                                               placeholder="00:00:00"
+                                               title="Enter time in format HH:mm:ss">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="document" class="form-label">
+                                    <i class="fas fa-file-alt me-2"></i>Attach Document
+                                </label>
+                                <input type="file" class="form-control" id="document">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Request
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Stats Column -->
+                <div class="col-md-4">
+                    <div class="requests-card">
+                        <!-- Stats Section -->
+                        <div class="stats-row">
+                            <div class="stat-widget">
+                                <div class="stat-icon bg-total">
+                                    <i class="fas fa-tasks"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-title">Total Requests</div>
+                                    <div class="stat-value text-total" id="totalRequests">0</div>
+                                </div>
+                            </div>
+                            <div class="stat-widget">
+                                <div class="stat-icon bg-pending">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-title">Pending</div>
+                                    <div class="stat-value text-pending" id="pendingRequests">0</div>
+                                </div>
+                            </div>
+                            <div class="stat-widget">
+                                <div class="stat-icon bg-completed">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-title">Completed</div>
+                                    <div class="stat-value text-completed" id="completedRequests">0</div>
+                                </div>
+                            </div>
+                            <div class="stat-widget">
+                                <div class="stat-icon bg-error">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-title">Errors</div>
+                                    <div class="stat-value text-error" id="errorRequests">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Requests Section -->
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="requests-card">
+                        <div class="requests-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-history me-2"></i>Recent Requests
+                            </h3>
+                            <table class="requests-table">
+                                <thead>
+                                    <tr>
+                                        <th>Ref ID</th>
+                                        <th>Operation</th>
+                                        <th>Split?</th>
+                                        <th>Start Time</th>
+                                        <th>End Time</th>
+                                        <th>Submission Time</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="requestsList">
+                                    <!-- Requests will be added dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        // Auth state
+        let isSignUp = false;
+        const authContainer = document.getElementById('authContainer');
+        const mainContent = document.getElementById('mainContent');
+        const authForm = document.getElementById('authForm');
+        const switchAuth = document.getElementById('switchAuth');
+        const emailField = document.getElementById('emailField');
+        const authMessage = document.getElementById('authMessage');
+
+        // Check authentication status on page load
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/auth/check');
+                const data = await response.json();
+                
+                if (data.authenticated) {
+                    showMainContent(data.user);
+                } else {
+                    showAuthForm();
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                showAuthForm();
+            }
+        }
+
+        // Show auth form
+        function showAuthForm() {
+            authContainer.style.display = 'block';
+            mainContent.style.display = 'none';
+        }
+
+        // Show main content
+        function showMainContent(user) {
+            authContainer.style.display = 'none';
+            mainContent.style.display = 'block';
+            updateUserProfile(user);
+            loadUserRequests(); // Load user's requests
+        }
+
+        // Update user profile in the navbar
+        function updateUserProfile(user) {
+            const profileSection = document.querySelector('.profile-section');
+            if (profileSection) {
+                profileSection.innerHTML = `
+                    <span class="profile-name">${user.username}</span>
+                    <div class="profile-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-actions">
+                        <button class="logout-btn" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Handle auth form submission
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value;
+
+            try {
+                const endpoint = isSignUp ? '/api/auth/signup' : '/api/auth/login';
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password, email }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (isSignUp) {
+                        authMessage.textContent = 'Account created successfully! Please sign in.';
+                        authMessage.className = 'success-message';
+                        switchAuthMode();
+                    } else {
+                        showMainContent(data.user);
+                    }
+                } else {
+                    authMessage.textContent = data.error;
+                    authMessage.className = 'error-message';
+                }
+            } catch (error) {
+                authMessage.textContent = 'An error occurred. Please try again.';
+                authMessage.className = 'error-message';
+            }
+        });
+
+        // Switch between sign in and sign up
+        function switchAuthMode() {
+            isSignUp = !isSignUp;
+            emailField.style.display = isSignUp ? 'block' : 'none';
+            switchAuth.textContent = isSignUp ? 'Sign In' : 'Create Account';
+            document.querySelector('.auth-title').textContent = isSignUp ? 'Create Account' : 'Sign In';
+            document.querySelector('button[type="submit"]').textContent = isSignUp ? 'Sign Up' : 'Sign In';
+            authMessage.textContent = '';
+        }
+
+        // Handle auth mode switch
+        switchAuth.addEventListener('click', switchAuthMode);
+
+        // Handle logout
+        async function logout() {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                });
+                if (response.ok) {
+                    showAuthForm();
+                }
+            } catch (error) {
+                console.error('Logout failed:', error);
+            }
+        }
+
+        // Check auth status on page load
+        checkAuth();
+
+        document.getElementById('splitOption').addEventListener('change', function() {
+            document.getElementById('timeControls').style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Time format validation and auto-formatting
+        function formatTimeInput(input) {
+            // Remove any non-digit characters
+            let value = input.value.replace(/\D/g, '');
+            
+            // Limit to 6 digits (HHMMSS)
+            value = value.substring(0, 6);
+            
+            // Add colons after every 2 digits
+            if (value.length > 2) {
+                value = value.substring(0, 2) + ':' + value.substring(2);
+            }
+            if (value.length > 5) {
+                value = value.substring(0, 5) + ':' + value.substring(5);
+            }
+            
+            input.value = value;
+        }
+
+        function validateTimeFormat(input) {
+            const timeRegex = /^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$/;
+            if (input.value && !timeRegex.test(input.value)) {
+                input.setCustomValidity('Please enter time in HH:mm:ss format');
+            } else {
+                input.setCustomValidity('');
+            }
+        }
+
+        // Add event listeners for time inputs
+        ['startTime', 'endTime'].forEach(id => {
+            const input = document.getElementById(id);
+            input.addEventListener('input', function(e) {
+                formatTimeInput(this);
+                validateTimeFormat(this);
+            });
+
+            // Prevent non-numeric keys
+            input.addEventListener('keypress', function(e) {
+                if (!/[\d]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete') {
+                    e.preventDefault();
+                }
+            });
+
+            // Handle paste event
+            input.addEventListener('paste', function(e) {
+                e.preventDefault();
+                const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                const numericOnly = pastedText.replace(/\D/g, '');
+                this.value = numericOnly;
+                formatTimeInput(this);
+            });
+        });
+
+        // Add these variables at the top of your script
+        let stats = {
+            total: 0,
+            pending: 0,
+            completed: 0,
+            error: 0
+        };
+
+        function updateStats() {
+            document.getElementById('totalRequests').textContent = stats.total;
+            document.getElementById('pendingRequests').textContent = stats.pending;
+            document.getElementById('completedRequests').textContent = stats.completed;
+            document.getElementById('errorRequests').textContent = stats.error;
+        }
+
+        // Initialize Socket.IO with public URL
+        const publicUrl = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://your-ngrok-url.ngrok.io';
+        const socket = io(publicUrl);
+        
+        // Load user's requests
+        async function loadUserRequests() {
+            try {
+                const response = await fetch('/api/requests');
+                if (!response.ok) throw new Error('Failed to load requests');
+                
+                const requests = await response.json();
+                const requestsList = document.getElementById('requestsList');
+                requestsList.innerHTML = ''; // Clear existing requests
+                
+                requests.forEach(req => {
+                    const row = createRequestRow(req);
+                    requestsList.appendChild(row);
+                });
+                
+                // Update stats
+                updateRequestStats(requests);
+            } catch (error) {
+                console.error('Error loading requests:', error);
+            }
+        }
+
+        function createRequestRow(req) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="ref-id">#${req.ref_id.slice(-6)}</td>
+                <td>
+                    <span class="operation-badge operation-${req.operation}">
+                        ${req.operation.charAt(0).toUpperCase() + req.operation.slice(1)}
+                    </span>
+                </td>
+                <td>
+                    <span class="split-indicator ${req.split_option ? 'split-yes' : 'split-no'}">
+                        <i class="fas ${req.split_option ? 'fa-check' : 'fa-times'}"></i>
+                    </span>
+                </td>
+                <td class="time-info">${req.start_time || '-'}</td>
+                <td class="time-info">${req.end_time || '-'}</td>
+                <td class="time-info">${new Date(req.created_at).toLocaleString()}</td>
+                <td>
+                    <span class="status-badge status-${req.status}">
+                        <i class="fas ${getStatusIcon(req.status)} me-1"></i>${req.status.charAt(0).toUpperCase() + req.status.slice(1)}
+                    </span>
+                </td>
+                <td class="action-buttons">
+                    <button class="btn-view" ${req.status !== 'completed' ? 'style="display: none;"' : ''}>
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    <button class="btn-download" ${req.status !== 'completed' ? 'style="display: none;"' : ''}>
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </td>
+            `;
+
+            // Add click handlers
+            const viewButton = row.querySelector('.btn-view');
+            const downloadButton = row.querySelector('.btn-download');
+
+            viewButton.addEventListener('click', () => showRequestResult(req.ref_id));
+            downloadButton.addEventListener('click', () => downloadRequestResult(req));
+
+            return row;
+        }
+
+        function getStatusIcon(status) {
+            switch (status) {
+                case 'pending': return 'fa-clock';
+                case 'completed': return 'fa-check';
+                case 'error': return 'fa-exclamation-circle';
+                default: return 'fa-question';
+            }
+        }
+
+        function updateRequestStats(requests) {
+            stats.total = requests.length;
+            stats.pending = requests.filter(req => req.status === 'pending').length;
+            stats.completed = requests.filter(req => req.status === 'completed').length;
+            stats.error = requests.filter(req => req.status === 'error').length;
+            updateStats();
+        }
+
+        async function showRequestResult(refId) {
+            try {
+                const response = await fetch(`/api/requests/${refId}`);
+                if (!response.ok) throw new Error('Failed to load request details');
+                
+                const req = await response.json();
+                // Show result in a modal or popup
+                alert(req.result); // Replace with your preferred way to show results
+            } catch (error) {
+                console.error('Error loading request result:', error);
+            }
+        }
+
+        function downloadRequestResult(req) {
+            const blob = new Blob([req.result], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `result_${req.ref_id}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Update the form submit handler
+        document.getElementById('analysisForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = {
+                videoUrl: document.getElementById('videoUrl').value,
+                operation: document.getElementById('operation').value,
+                splitOption: document.getElementById('splitOption').checked,
+                startTime: document.getElementById('startTime').value,
+                endTime: document.getElementById('endTime').value,
+                request_id: Date.now().toString() // Generate unique request ID
+            };
+
+            // Validate required fields
+            if (!formData.videoUrl || !formData.operation) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            try {
+                // Send API request
+                const response = await fetch('/api/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to submit request');
+                }
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Reload requests to get updated status
+                await loadUserRequests();
+                
+                // Clear form
+                document.getElementById('videoUrl').value = '';
+                document.getElementById('operation').value = '';
+                document.getElementById('splitOption').checked = false;
+                document.getElementById('startTime').value = '';
+                document.getElementById('endTime').value = '';
+                document.getElementById('timeControls').style.display = 'none';
+                
+                // Show success message
+                //alert('Request submitted successfully!');
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error submitting request: ' + error.message);
+            }
+        });
+
+        // Menu Toggle Functionality
+        const menuToggle = document.getElementById('menuToggle');
+        const menuClose = document.getElementById('menuClose');
+        const sidebarMenu = document.getElementById('sidebarMenu');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        function toggleMenu() {
+            sidebarMenu.classList.toggle('active');
+            sidebarOverlay.classList.toggle('active');
+        }
+
+        menuToggle.addEventListener('click', toggleMenu);
+        menuClose.addEventListener('click', toggleMenu);
+        sidebarOverlay.addEventListener('click', toggleMenu);
+
+        // Profile Click Handler (you can add functionality later)
+        document.getElementById('profileSection').addEventListener('click', function() {
+            // Add profile click functionality here
+            console.log('Profile clicked');
+        });
+
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+        
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            if (theme === 'dark') {
+                themeIcon.className = 'fas fa-sun';
+            } else {
+                themeIcon.className = 'fas fa-moon';
+            }
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+    </script>
+</body>
+</html>

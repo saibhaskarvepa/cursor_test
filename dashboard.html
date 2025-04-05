@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Video Analysis Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2B5B84;
+            --secondary-color: #4A90E2;
+            --accent-color: #F76707;
+            --background-color: #F8F9FA;
+            --text-color: #333;
+            --card-bg: white;
+            --border-color: #eee;
+            --hover-bg: #f8f9fa;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #4A90E2;
+            --secondary-color: #6BA8F2;
+            --accent-color: #FF8C42;
+            --background-color: #1A1A1A;
+            --text-color: #E0E0E0;
+            --card-bg: #2D2D2D;
+            --border-color: #404040;
+            --hover-bg: #333333;
+        }
+
+        body {
+            background-color: var(--background-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .navbar {
+            background-color: var(--card-bg);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand img {
+            height: 50px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 25px;
+            transition: background-color 0.3s ease;
+        }
+
+        .profile-section:hover {
+            background-color: var(--hover-bg);
+        }
+
+        .profile-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .profile-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .dashboard-card {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            padding: 25px;
+            margin-bottom: 20px;
+            border-top: 5px solid var(--primary-color);
+            border-color: var(--border-color);
+        }
+
+        .stat-card {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+            border-color: var(--border-color);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .activity-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .activity-content {
+            flex-grow: 1;
+        }
+
+        .activity-title {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .activity-time {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        .page-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-toggle i {
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Add theme toggle button -->
+    <button class="theme-toggle" id="themeToggle">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-link text-primary me-3" id="menuToggle">
+                    <i class="fas fa-bars fa-lg"></i>
+                </button>
+                <a class="navbar-brand" href="#">
+                    <img src="assets/Beyond AI Gen Best Final (1).png" alt="Beyond AI Gen Logo">
+                </a>
+            </div>
+            <div class="profile-section" id="profileSection">
+                <span class="profile-name d-none d-md-block">John Doe</span>
+                <div class="profile-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="page-title">Dashboard</h1>
+        
+        <!-- Stats Row -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-total">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div class="stat-value text-total" id="totalRequests">0</div>
+                    <div class="stat-label">Total Requests</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-pending">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-value text-pending" id="pendingRequests">0</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-completed">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="stat-value text-completed" id="completedRequests">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon bg-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="stat-value text-error" id="errorRequests">0</div>
+                    <div class="stat-label">Errors</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Row -->
+        <div class="row">
+            <!-- Recent Activity -->
+            <div class="col-md-6">
+                <div class="dashboard-card">
+                    <h3 class="section-title">
+                        <i class="fas fa-history me-2"></i>Recent Activity
+                    </h3>
+                    <ul class="activity-list" id="activityList">
+                        <!-- Activity items will be added dynamically -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Performance Chart -->
+            <div class="col-md-6">
+                <div class="dashboard-card">
+                    <h3 class="section-title">
+                        <i class="fas fa-chart-line me-2"></i>Performance
+                    </h3>
+                    <div class="chart-container" id="performanceChart">
+                        <!-- Chart will be rendered here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+        
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            if (theme === 'dark') {
+                themeIcon.className = 'fas fa-sun';
+            } else {
+                themeIcon.className = 'fas fa-moon';
+            }
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        // Load user's requests and update stats
+        async function loadUserRequests() {
+            try {
+                const response = await fetch('/api/requests');
+                if (!response.ok) throw new Error('Failed to load requests');
+                
+                const requests = await response.json();
+                updateStats(requests);
+                updateActivityList(requests);
+                updatePerformanceChart(requests);
+            } catch (error) {
+                console.error('Error loading requests:', error);
+            }
+        }
+
+        function updateStats(requests) {
+            const stats = {
+                total: requests.length,
+                pending: requests.filter(req => req.status === 'pending').length,
+                completed: requests.filter(req => req.status === 'completed').length,
+                error: requests.filter(req => req.status === 'error').length
+            };
+
+            document.getElementById('totalRequests').textContent = stats.total;
+            document.getElementById('pendingRequests').textContent = stats.pending;
+            document.getElementById('completedRequests').textContent = stats.completed;
+            document.getElementById('errorRequests').textContent = stats.error;
+        }
+
+        function updateActivityList(requests) {
+            const activityList = document.getElementById('activityList');
+            activityList.innerHTML = '';
+
+            // Sort requests by creation date, newest first
+            const sortedRequests = [...requests].sort((a, b) => 
+                new Date(b.created_at) - new Date(a.created_at)
+            );
+
+            // Show only the 5 most recent activities
+            sortedRequests.slice(0, 5).forEach(req => {
+                const item = document.createElement('li');
+                item.className = 'activity-item';
+                
+                const iconClass = getActivityIcon(req.operation);
+                const statusClass = getStatusClass(req.status);
+                
+                item.innerHTML = `
+                    <div class="activity-icon ${statusClass}">
+                        <i class="fas ${iconClass}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">${req.operation.charAt(0).toUpperCase() + req.operation.slice(1)} Request</div>
+                        <div class="activity-time">${new Date(req.created_at).toLocaleString()}</div>
+                    </div>
+                `;
+                
+                activityList.appendChild(item);
+            });
+        }
+
+        function getActivityIcon(operation) {
+            switch (operation) {
+                case 'translate': return 'fa-language';
+                case 'onlyOst': return 'fa-music';
+                case 'audit': return 'fa-clipboard-check';
+                default: return 'fa-tasks';
+            }
+        }
+
+        function getStatusClass(status) {
+            switch (status) {
+                case 'pending': return 'bg-pending';
+                case 'completed': return 'bg-completed';
+                case 'error': return 'bg-error';
+                default: return 'bg-total';
+            }
+        }
+
+        function updatePerformanceChart(requests) {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            
+            // Group requests by date
+            const requestsByDate = requests.reduce((acc, req) => {
+                const date = new Date(req.created_at).toLocaleDateString();
+                acc[date] = (acc[date] || 0) + 1;
+                return acc;
+            }, {});
+
+            // Sort dates
+            const sortedDates = Object.keys(requestsByDate).sort((a, b) => 
+                new Date(a) - new Date(b)
+            );
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sortedDates,
+                    datasets: [{
+                        label: 'Requests per Day',
+                        data: sortedDates.map(date => requestsByDate[date]),
+                        borderColor: '#2B5B84',
+                        tension: 0.1,
+                        fill: true,
+                        backgroundColor: 'rgba(43, 91, 132, 0.1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', loadUserRequests);
+    </script>
+</body>
+</html> 
