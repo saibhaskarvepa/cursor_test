@@ -1,10 +1,15 @@
-from openai import OpenAI
+import openai
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class OpenAIService:
     def __init__(self, socketio=None):
-        self.client = OpenAI()
         self.socketio = socketio
+        openai.api_key = os.getenv('OPENAI_API_KEY')
+        if not openai.api_key:
+            raise ValueError("OPENAI_API_KEY not found in environment variables")
 
     def transcribe_audio(self, audio_path, target_language="en", request_id=None):
         """
@@ -14,22 +19,23 @@ class OpenAIService:
             # Open audio file
             with open(audio_path, "rb") as audio_file:
                 # Transcribe with Whisper
-                transcript = self.client.audio.translations.create(
-                    model="whisper-1",
-                    file=audio_file
+                transcript = openai.Audio.transcribe(
+                    "whisper-1",
+                    audio_file,
+                    language=target_language
                 )
                 
                 # Send progress update
                 if request_id and self.socketio:
                     self.socketio.emit('transcription_progress', {
                         'request_id': request_id,
-                        'status': 'transcribed',
-                        'text': transcript.text
+                        'status': 'completed',
+                        'transcript': transcript.text
                     })
                 
                 # Translate if needed
                 if target_language != "en":
-                    translation = self.client.chat.completions.create(
+                    translation = openai.ChatCompletion.create(
                         model="gpt-3.5-turbo",
                         messages=[
                             {"role": "system", "content": f"You are a translator. Translate the following text to {target_language}:"},
@@ -51,12 +57,17 @@ class OpenAIService:
                 return transcript.text
                 
         except Exception as e:
-            print(f"Error transcribing audio: {str(e)}")
-            return None
+            if self.socketio and request_id:
+                self.socketio.emit('transcription_progress', {
+                    'request_id': request_id,
+                    'status': 'error',
+                    'error': str(e)
+                })
+            raise e
         finally:
             # Clean up audio file
             if os.path.exists(audio_path):
                 os.remove(audio_path)
 
-# Create a singleton instance
+# Initialize the service
 openai_service = OpenAIService() 

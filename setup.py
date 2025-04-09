@@ -76,20 +76,28 @@ def init_db():
 def create_run_script():
     print("Creating run script...")
     if sys.platform == "win32":
-        with open('run.bat', 'w') as f:
+        run_script_path = os.path.abspath('run.bat')
+        with open(run_script_path, 'w') as f:
             f.write('@echo off\n')
+            f.write('echo Activating virtual environment...\n')
             f.write('call .\\venv\\Scripts\\activate\n')
+            f.write('echo Starting application...\n')
             f.write('python app.py\n')
+            f.write('echo.\n')
+            f.write('echo If the application closed unexpectedly, check the error message above.\n')
             f.write('pause\n')
-        print("Created run.bat script")
+        print(f"Created run.bat script at {run_script_path}")
     else:
-        with open('run.sh', 'w') as f:
+        run_script_path = os.path.abspath('run.sh')
+        with open(run_script_path, 'w') as f:
             f.write('#!/bin/bash\n')
+            f.write('echo "Activating virtual environment..."\n')
             f.write('source venv/bin/activate\n')
+            f.write('echo "Starting application..."\n')
             f.write('python app.py\n')
         # Make the script executable
-        os.chmod('run.sh', 0o755)
-        print("Created run.sh script")
+        os.chmod(run_script_path, 0o755)
+        print(f"Created run.sh script at {run_script_path}")
 
 def main():
     try:
