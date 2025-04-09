@@ -5,6 +5,11 @@ import venv
 from pathlib import Path
 import secrets
 
+def check_python_version():
+    if sys.version_info < (3, 8):
+        print("Error: Python 3.8 or higher is required")
+        sys.exit(1)
+
 def create_venv():
     print("Creating virtual environment...")
     venv.create('venv', with_pip=True)
@@ -46,8 +51,29 @@ def init_db():
     subprocess.run([python_path, 'init_db.py'], check=True)
     print("Database initialized successfully!")
 
+def create_run_script():
+    print("Creating run script...")
+    if sys.platform == "win32":
+        with open('run.bat', 'w') as f:
+            f.write('@echo off\n')
+            f.write('call .\\venv\\Scripts\\activate\n')
+            f.write('python app.py\n')
+            f.write('pause\n')
+        print("Created run.bat script")
+    else:
+        with open('run.sh', 'w') as f:
+            f.write('#!/bin/bash\n')
+            f.write('source venv/bin/activate\n')
+            f.write('python app.py\n')
+        # Make the script executable
+        os.chmod('run.sh', 0o755)
+        print("Created run.sh script")
+
 def main():
     try:
+        # Check Python version
+        check_python_version()
+        
         # Create virtual environment
         create_venv()
         
@@ -60,8 +86,19 @@ def main():
         # Initialize database
         init_db()
         
+        # Create run script
+        create_run_script()
+        
         print("\nSetup completed successfully!")
         print("\nTo run the application:")
+        if sys.platform == "win32":
+            print("1. Double-click run.bat or run from command line:")
+            print("   run.bat")
+        else:
+            print("1. Run from command line:")
+            print("   ./run.sh")
+        
+        print("\nAlternatively, you can run manually:")
         if sys.platform == "win32":
             print("1. Activate virtual environment: .\\venv\\Scripts\\activate")
         else:

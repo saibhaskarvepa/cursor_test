@@ -19,8 +19,32 @@ A Flask-based application for processing YouTube videos with features like trans
    ```bash
    python setup.py
    ```
+   This will:
+   - Create a virtual environment
+   - Install all dependencies
+   - Set up environment variables
+   - Initialize the database
+   - Create a run script
 
-3. Activate the virtual environment:
+3. Run the application:
+   - On Windows:
+     - Double-click `run.bat` or run from command line:
+       ```bash
+       run.bat
+       ```
+   - On macOS/Linux:
+     - Run from command line:
+       ```bash
+       ./run.sh
+       ```
+
+The application will be available at `http://localhost:5000`
+
+## Manual Setup (Alternative)
+
+If you prefer to run manually:
+
+1. Activate the virtual environment:
    - On Windows:
      ```bash
      .\venv\Scripts\activate
@@ -30,12 +54,10 @@ A Flask-based application for processing YouTube videos with features like trans
      source venv/bin/activate
      ```
 
-4. Run the application:
+2. Run the application:
    ```bash
    python app.py
    ```
-
-The application will be available at `http://localhost:5000`
 
 ## Environment Variables
 
@@ -59,6 +81,7 @@ The setup script automatically creates a `.env` file with the following variable
 - `init_db.py`: Database initialization
 - `requirements.txt`: Python dependencies
 - `setup.py`: Automated setup script
+- `run.bat`/`run.sh`: Convenience scripts to run the application
 
 ## Troubleshooting
 
@@ -68,6 +91,7 @@ If you encounter any issues:
 2. Check if all dependencies are installed correctly
 3. Verify that the `.env` file exists and contains the necessary variables
 4. Ensure you have an active internet connection for YouTube downloads and OpenAI services
+5. If you get "ModuleNotFoundError", make sure you've run the setup script and are using the run script or have activated the virtual environment
 
 ## Support
 
