@@ -1,36 +1,32 @@
 import yt_dlp
-from moviepy.editor import VideoFileClip 
 import os
 
 def download_youtube_video(url, output_path="downloads"):
     """
-    Downloads a YouTube video and extracts the audio
+    Downloads a YouTube video and extracts the audio using yt-dlp
     """
     try:
         # Create downloads directory if it doesn't exist
         if not os.path.exists(output_path):
             os.makedirs(output_path)
             
-        # Configure yt-dlp options
+        # Configure yt-dlp options for audio extraction
         ydl_opts = {
-            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-            'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
-            'merge_output_format': 'mp4'
+            'format': 'bestaudio/best',
+            'outtmpl': os.path.join(output_path, 'audio.%(ext)s'),
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
         }
         
-        # Download video
+        # Download and extract audio
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
-            video_path = ydl.prepare_filename(info)
-        
-        # Extract audio from video
-        video_clip = VideoFileClip(video_path)
-        audio_path = os.path.join(output_path, "audio.mp3")
-        video_clip.audio.write_audiofile(audio_path)
-        
-        # Clean up video file
-        video_clip.close()
-        os.remove(video_path)
+            audio_path = ydl.prepare_filename(info)
+            # Change extension to .mp3 since we specified mp3 in postprocessors
+            audio_path = os.path.splitext(audio_path)[0] + '.mp3'
         
         return audio_path
         

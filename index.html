@@ -708,7 +708,7 @@
                         <i class="fas fa-bars fa-lg" style="color: var(--primary-color);"></i>
                     </button>
                     <a class="navbar-brand" href="#">
-                        <img src="assets/Beyond AI Gen Best Final (1).png" alt="Beyond AI Gen Logo">
+                        <img src="assets/logo.js" alt="Beyond AI Gen Logo" style="max-height: 40px;">
                     </a>
                 </div>
                 <div class="profile-section" id="profileSection">
@@ -726,31 +726,33 @@
             <button class="menu-close" id="menuClose">
                 <i class="fas fa-times"></i>
             </button>
-            <h5 class="mb-4">Menu</h5>
-            <a href="/dashboard" class="menu-item">
-                <i class="fas fa-home"></i>
-                Dashboard
-            </a>
-            <a href="/" class="menu-item">
-                <i class="fas fa-plus-circle"></i>
-                New Request
-            </a>
-            <a href="#" class="menu-item">
-                <i class="fas fa-history"></i>
-                History
-            </a>
-            <a href="#" class="menu-item">
-                <i class="fas fa-cog"></i>
-                Settings
-            </a>
-            <a href="#" class="menu-item">
-                <i class="fas fa-question-circle"></i>
-                Help
-            </a>
-            <a href="#" class="menu-item">
-                <i class="fas fa-sign-out-alt"></i>
-                Logout
-            </a>
+            <div class="menu-items">
+                <h5 class="mb-4">Menu</h5>
+                <a href="/dashboard" class="menu-item">
+                    <i class="fas fa-home"></i>
+                    Dashboard
+                </a>
+                <a href="/" class="menu-item">
+                    <i class="fas fa-plus-circle"></i>
+                    New Request
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-history"></i>
+                    History
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-question-circle"></i>
+                    Help
+                </a>
+                <a href="#" class="menu-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </a>
+            </div>
         </div>
 
         <div class="container main-container">
@@ -921,17 +923,42 @@
 
         // Check authentication status on page load
         async function checkAuth() {
-            try {
-                const response = await fetch('/api/auth/check');
-                const data = await response.json();
-                
-                if (data.authenticated) {
-                    showMainContent(data.user);
-                } else {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            if (token && user) {
+                try {
+                    const response = await fetch('/api/auth/check', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.authenticated) {
+                            console.log('Auth check successful, showing main content.'); // Debug log
+                            showMainContent(JSON.parse(user), token);
+                            return; // Successfully authenticated
+                        }
+                    }
+                    
+                    // If response is not ok OR data.authenticated is false
+                    console.log('Token validation failed (server response), showing login form.'); // Debug log
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    showAuthForm();
+                    
+                } catch (error) {
+                    // If the fetch itself fails (network error, etc.)
+                    console.error('Auth check failed (network error/exception):', error); // Debug log
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
                     showAuthForm();
                 }
-            } catch (error) {
-                console.error('Auth check failed:', error);
+            } else {
+                // No token or user data found in local storage
+                console.log('No token/user found in local storage, showing login form.'); // Debug log
                 showAuthForm();
             }
         }
@@ -940,31 +967,45 @@
         function showAuthForm() {
             authContainer.style.display = 'block';
             mainContent.style.display = 'none';
+            // Clear any existing error messages
+            authMessage.textContent = '';
+            authMessage.className = '';
         }
 
         // Show main content
-        function showMainContent(user) {
+        function showMainContent(user, token) {
             authContainer.style.display = 'none';
             mainContent.style.display = 'block';
             updateUserProfile(user);
-            loadUserRequests(); // Load user's requests
+            loadUserRequests(token);
         }
 
         // Update user profile in the navbar
         function updateUserProfile(user) {
-            const profileSection = document.querySelector('.profile-section');
-            if (profileSection) {
-                profileSection.innerHTML = `
-                    <span class="profile-name">${user.username}</span>
-                    <div class="profile-icon">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="user-actions">
-                        <button class="logout-btn" onclick="logout()">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </button>
-                    </div>
-                `;
+            const profileSection = document.getElementById('profileSection'); // Use the specific ID
+            const profileNameElement = profileSection?.querySelector('.profile-name');
+            const logoutBtnElement = document.getElementById('logoutBtn'); // Get the sidebar logout button
+
+            if (profileSection && user && user.username) {
+                console.log('Updating profile for:', user.username); // Debug log
+                if(profileNameElement) {
+                    profileNameElement.textContent = user.username;
+                }
+                 // Ensure the main logout button in the sidebar is correctly set up
+                if (logoutBtnElement) {
+                    logoutBtnElement.removeEventListener('click', logout); // Remove previous listener if any
+                    logoutBtnElement.addEventListener('click', logout); 
+                }
+            } else {
+                console.warn('Could not update profile section or user data missing'); // Debug log
+                 // Clear profile name if user data is missing
+                 if (profileNameElement) {
+                    profileNameElement.textContent = 'Guest';
+                 }
+                 // Optionally hide or disable logout button if no user
+                 if (logoutBtnElement) {
+                    logoutBtnElement.removeEventListener('click', logout);
+                 }
             }
         }
 
@@ -976,16 +1017,26 @@
             const email = document.getElementById('email').value;
 
             try {
+                console.log('Attempting login/signup...');
                 const endpoint = isSignUp ? '/api/auth/signup' : '/api/auth/login';
+                console.log('Using endpoint:', endpoint);
+                
+                const requestBody = isSignUp 
+                    ? { username, password, email }
+                    : { username, password };
+                console.log('Request body:', requestBody);
+
                 const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ username, password, email }),
+                    body: JSON.stringify(requestBody),
                 });
 
+                console.log('Response status:', response.status);
                 const data = await response.json();
+                console.log('Response data:', data);
 
                 if (response.ok) {
                     if (isSignUp) {
@@ -993,13 +1044,24 @@
                         authMessage.className = 'success-message';
                         switchAuthMode();
                     } else {
-                        showMainContent(data.user);
+                        if (data.token && data.user) {
+                            localStorage.setItem('token', data.token);
+                            localStorage.setItem('user', JSON.stringify(data.user));
+                            console.log('Token and user data stored in localStorage');
+                            showMainContent(data.user, data.token);
+                        } else {
+                            console.warn('No token or user data received in login response');
+                            authMessage.textContent = 'Login failed: Invalid response from server';
+                            authMessage.className = 'error-message';
+                        }
                     }
                 } else {
-                    authMessage.textContent = data.error;
+                    console.error('Login/signup failed:', data.error);
+                    authMessage.textContent = data.error || 'An error occurred during login';
                     authMessage.className = 'error-message';
                 }
             } catch (error) {
+                console.error('Login/signup error:', error);
                 authMessage.textContent = 'An error occurred. Please try again.';
                 authMessage.className = 'error-message';
             }
@@ -1021,14 +1083,22 @@
         // Handle logout
         async function logout() {
             try {
-                const response = await fetch('/api/auth/logout', {
-                    method: 'POST',
-                });
-                if (response.ok) {
-                    showAuthForm();
+                const token = localStorage.getItem('token');
+                if (token) {
+                    await fetch('/api/auth/logout', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
                 }
             } catch (error) {
-                console.error('Logout failed:', error);
+                console.error('Logout request failed:', error);
+            } finally {
+                // Always clear local storage and show auth form
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                showAuthForm();
             }
         }
 
@@ -1108,71 +1178,188 @@
         }
 
         // Initialize Socket.IO with public URL
-        const publicUrl = window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://your-ngrok-url.ngrok.io';
+        const publicUrl = 'http://localhost:5000';
         const socket = io(publicUrl);
         
-        // Load user's requests
-        async function loadUserRequests() {
+        // Helper function for API requests
+        async function apiRequest(url, options = {}, tokenOverride = null) {
+            // Use override if provided for the initial call, otherwise get from storage
+            const token = tokenOverride || localStorage.getItem('token');
+            
+            console.log(`[apiRequest] Called for URL: ${url}`); // Log URL
+            console.log(`[apiRequest] Using tokenOverride: ${tokenOverride ? 'Yes' : 'No'}`); // Log if override is used
+            console.log(`[apiRequest] Token found: ${token ? 'Yes' : 'No'}`); // Log if token exists
+
+            // Log the first few characters of the token for verification, if it exists
+            if (token) {
+                console.log(`[apiRequest] Token start: ${token.substring(0, 15)}...`); 
+            }
+            
+            // Check if token exists *before* making the request
+            if (!token) {
+                console.error('[apiRequest] No token found, showing auth form.'); // Updated log
+                // Ensure cleanup and redirection if token is missing
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                showAuthForm(); // Show login form instead of immediate redirect sometimes causing issues
+                return Promise.reject(new Error('No authentication token found.')); // Reject the promise
+            }
+
+            const defaultHeaders = {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+            
+            // Merge headers, ensuring Authorization is correctly set
+             const finalOptions = {
+                ...options, // Spread incoming options first
+                headers: { 
+                    ...defaultHeaders, // Apply default headers
+                    ...(options.headers || {}) // Override with specific headers from options, if any
+                }
+            };
+
+            // Log the final Authorization header being sent
+            console.log(`[apiRequest] Sending Authorization Header: ${finalOptions.headers.Authorization.substring(0, 25)}...`);
+
             try {
-                const response = await fetch('/api/requests');
-                if (!response.ok) throw new Error('Failed to load requests');
+                // Use finalOptions which includes merged headers
+                const response = await fetch(url, finalOptions);
                 
-                const requests = await response.json();
-                const requestsList = document.getElementById('requestsList');
-                requestsList.innerHTML = ''; // Clear existing requests
+                console.log(`[apiRequest] Response status for ${url}: ${response.status}`); // Log response status
+
+                if (response.status === 401) {
+                     // Explicitly handle 401 Unauthorized
+                    console.error('[apiRequest] API request resulted in 401 Unauthorized, logging out.'); // Updated log
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    showAuthForm();
+                    // Optionally, display a message: authMessage.textContent = 'Session expired. Please log in again.';
+                    return Promise.reject(new Error('Unauthorized')); // Reject the promise
+                }
                 
-                requests.forEach(req => {
-                    const row = createRequestRow(req);
-                    requestsList.appendChild(row);
+                if (!response.ok) {
+                    // Handle other non-401 errors
+                    let errorData;
+                    try {
+                         errorData = await response.json();
+                    } catch (jsonError) {
+                        // Handle cases where the error response is not JSON
+                        errorData = { message: `Request failed with status ${response.status}` };
+                    }
+                    console.error(`API request failed (${response.status}):`, errorData); // Debug log
+                    throw new Error(errorData.message || `Request failed with status ${response.status}`);
+                }
+
+                // For 204 No Content responses, return null or an empty object
+                if (response.status === 204) {
+                    return null; 
+                }
+
+                return await response.json(); // Parse JSON for successful responses
+                
+            } catch (error) {
+                // Catch network errors or errors thrown from response handling
+                console.error('API request error (catch block):', error); // Debug log
+                // Avoid automatic logout on general network errors, but handle specific cases if needed
+                // Example: Check error type if needed: if (error.message === 'Unauthorized') { ... }
+                throw error; // Re-throw the error to be handled by the calling function
+            }
+        }
+
+        // Load user requests
+        async function loadUserRequests(token) {
+            try {
+                const requests = await apiRequest('/api/requests', {}, token);
+                console.log('Loaded requests:', requests); // Debug log
+                
+                const tbody = document.querySelector('#requestsList');
+                if (!tbody) {
+                    console.error('Requests table body not found');
+                    return;
+                }
+                
+                tbody.innerHTML = '';
+
+                if (!requests || !Array.isArray(requests)) {
+                    console.error('Invalid requests data:', requests);
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = '<td colspan="8" class="text-center">Error loading requests</td>';
+                    tbody.appendChild(tr);
+                    return;
+                }
+
+                if (requests.length === 0) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = '<td colspan="8" class="text-center">No requests found</td>';
+                    tbody.appendChild(tr);
+                    return;
+                }
+
+                requests.forEach(request => {
+                    if (!request || typeof request !== 'object') {
+                        console.error('Invalid request data:', request);
+                        return;
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${request.ref_id ? request.ref_id.slice(-6) : '-'}</td>
+                        <td>
+                            <span class="operation-badge operation-${request.operation || 'unknown'}">
+                                ${(request.operation || 'Unknown').charAt(0).toUpperCase() + (request.operation || 'Unknown').slice(1)}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="split-indicator ${request.split_option ? 'split-yes' : 'split-no'}">
+                                <i class="fas ${request.split_option ? 'fa-check' : 'fa-times'}"></i>
+                            </span>
+                        </td>
+                        <td class="time-info">${request.start_time || '-'}</td>
+                        <td class="time-info">${request.end_time || '-'}</td>
+                        <td class="time-info">${request.created_at ? new Date(request.created_at).toLocaleString() : '-'}</td>
+                        <td>
+                            <span class="status-badge status-${request.status || 'unknown'}">
+                                <i class="fas ${getStatusIcon(request.status)} me-1"></i>${(request.status || 'Unknown').charAt(0).toUpperCase() + (request.status || 'Unknown').slice(1)}
+                            </span>
+                        </td>
+                        <td class="action-buttons">
+                            <button class="btn-view" ${request.status !== 'completed' ? 'style="display: none;"' : ''}>
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            <button class="btn-download" ${request.status !== 'completed' ? 'style="display: none;"' : ''}>
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                        </td>
+                    `;
+
+                    // Add click handlers
+                    const viewButton = tr.querySelector('.btn-view');
+                    const downloadButton = tr.querySelector('.btn-download');
+
+                    if (viewButton) {
+                        viewButton.addEventListener('click', () => showRequestResult(request.ref_id));
+                    }
+                    if (downloadButton) {
+                        downloadButton.addEventListener('click', () => downloadRequestResult(request));
+                    }
+
+                    tbody.appendChild(tr);
                 });
                 
                 // Update stats
                 updateRequestStats(requests);
             } catch (error) {
                 console.error('Error loading requests:', error);
+                const tbody = document.querySelector('#requestsList');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="text-center">Error loading requests: ${error.message}</td>
+                        </tr>
+                    `;
+                }
             }
-        }
-
-        function createRequestRow(req) {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td class="ref-id">#${req.ref_id.slice(-6)}</td>
-                <td>
-                    <span class="operation-badge operation-${req.operation}">
-                        ${req.operation.charAt(0).toUpperCase() + req.operation.slice(1)}
-                    </span>
-                </td>
-                <td>
-                    <span class="split-indicator ${req.split_option ? 'split-yes' : 'split-no'}">
-                        <i class="fas ${req.split_option ? 'fa-check' : 'fa-times'}"></i>
-                    </span>
-                </td>
-                <td class="time-info">${req.start_time || '-'}</td>
-                <td class="time-info">${req.end_time || '-'}</td>
-                <td class="time-info">${new Date(req.created_at).toLocaleString()}</td>
-                <td>
-                    <span class="status-badge status-${req.status}">
-                        <i class="fas ${getStatusIcon(req.status)} me-1"></i>${req.status.charAt(0).toUpperCase() + req.status.slice(1)}
-                    </span>
-                </td>
-                <td class="action-buttons">
-                    <button class="btn-view" ${req.status !== 'completed' ? 'style="display: none;"' : ''}>
-                        <i class="fas fa-eye"></i> View
-                    </button>
-                    <button class="btn-download" ${req.status !== 'completed' ? 'style="display: none;"' : ''}>
-                        <i class="fas fa-download"></i> Download
-                    </button>
-                </td>
-            `;
-
-            // Add click handlers
-            const viewButton = row.querySelector('.btn-view');
-            const downloadButton = row.querySelector('.btn-download');
-
-            viewButton.addEventListener('click', () => showRequestResult(req.ref_id));
-            downloadButton.addEventListener('click', () => downloadRequestResult(req));
-
-            return row;
         }
 
         function getStatusIcon(status) {
@@ -1217,11 +1404,10 @@
             URL.revokeObjectURL(url);
         }
 
-        // Update the form submit handler
-        document.getElementById('analysisForm').addEventListener('submit', async function(e) {
+        // Handle form submission
+        document.getElementById('analysisForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // Get form data
             const formData = {
                 videoUrl: document.getElementById('videoUrl').value,
                 operation: document.getElementById('operation').value,
@@ -1238,41 +1424,31 @@
             }
 
             try {
-                // Send API request
-                const response = await fetch('/api/process', {
+                console.log('Submitting request with data:', formData); // Debug log
+                // apiRequest will get token from localStorage here
+                const data = await apiRequest('/api/process', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
                     body: JSON.stringify(formData)
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to submit request');
-                }
-
-                const data = await response.json();
-                
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-
-                // Reload requests to get updated status
-                await loadUserRequests();
-                
-                // Clear form
+                console.log('Request submitted successfully:', data); // Debug log
                 document.getElementById('videoUrl').value = '';
                 document.getElementById('operation').value = '';
                 document.getElementById('splitOption').checked = false;
                 document.getElementById('startTime').value = '';
                 document.getElementById('endTime').value = '';
                 document.getElementById('timeControls').style.display = 'none';
-                
-                // Show success message
-                //alert('Request submitted successfully!');
+                // Call loadUserRequests without token override, it will use localStorage
+                loadUserRequests(); 
             } catch (error) {
-                console.error('Error:', error);
-                alert('Error submitting request: ' + error.message);
+                console.error('Error submitting request:', error);
+                // Display error nicely, avoid alert if possible
+                const submitErrorElement = document.createElement('div');
+                submitErrorElement.className = 'alert alert-danger mt-3';
+                submitErrorElement.textContent = error.message || 'Failed to submit request. Please try again.';
+                // Assuming the form is within the .form-card element
+                document.querySelector('.form-card').appendChild(submitErrorElement);
+                setTimeout(() => submitErrorElement.remove(), 5000); // Auto-remove message
             }
         });
 
