@@ -19,9 +19,15 @@ def install_dependencies():
     print("Installing dependencies...")
     if sys.platform == "win32":
         pip_path = os.path.join('venv', 'Scripts', 'pip')
+        python_path = os.path.join('venv', 'Scripts', 'python')
     else:
         pip_path = os.path.join('venv', 'bin', 'pip')
+        python_path = os.path.join('venv', 'bin', 'python')
     
+    # Upgrade pip first
+    subprocess.run([python_path, '-m', 'pip', 'install', '--upgrade', 'pip'], check=True)
+    
+    # Install dependencies
     subprocess.run([pip_path, 'install', '-r', 'requirements.txt'], check=True)
     print("Dependencies installed successfully!")
 
@@ -48,8 +54,13 @@ def init_db():
     else:
         python_path = os.path.join('venv', 'bin', 'python')
     
-    subprocess.run([python_path, 'init_db.py'], check=True)
-    print("Database initialized successfully!")
+    try:
+        subprocess.run([python_path, 'init_db.py'], check=True)
+        print("Database initialized successfully!")
+    except subprocess.CalledProcessError as e:
+        print("Warning: Database initialization failed. This might be due to OpenAI configuration.")
+        print("You can initialize the database later after setting up your OpenAI API key.")
+        print("Error details:", str(e))
 
 def create_run_script():
     print("Creating run script...")
@@ -104,6 +115,11 @@ def main():
         else:
             print("1. Activate virtual environment: source venv/bin/activate")
         print("2. Run the application: python app.py")
+        
+        print("\nNote: If you haven't set up your OpenAI API key yet:")
+        print("1. Open the .env file")
+        print("2. Replace 'your_openai_api_key_here' with your actual OpenAI API key")
+        print("3. Run the application again")
         
     except Exception as e:
         print(f"Error during setup: {str(e)}")
