@@ -4,11 +4,22 @@ import subprocess
 import venv
 from pathlib import Path
 import secrets
+import shutil
 
 def check_python_version():
     if sys.version_info < (3, 8):
         print("Error: Python 3.8 or higher is required")
         sys.exit(1)
+
+def cleanup_venv():
+    print("Cleaning up existing virtual environment...")
+    venv_path = Path('venv')
+    if venv_path.exists():
+        try:
+            shutil.rmtree(venv_path)
+            print("Existing virtual environment removed.")
+        except Exception as e:
+            print(f"Warning: Could not remove existing virtual environment: {str(e)}")
 
 def create_venv():
     print("Creating virtual environment...")
@@ -84,6 +95,9 @@ def main():
     try:
         # Check Python version
         check_python_version()
+        
+        # Cleanup existing virtual environment
+        cleanup_venv()
         
         # Create virtual environment
         create_venv()

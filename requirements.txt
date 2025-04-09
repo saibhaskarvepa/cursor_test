@@ -4,7 +4,7 @@ flask-cors==5.0.1
 flask-socketio==5.5.1
 python-dotenv==1.0.1
 PyJWT==2.10.1
-openai==1.14.0
+openai==0.28.1
 yt-dlp==2024.3.10
 python-engineio==4.11.2
 python-socketio==5.12.1 
